@@ -1,0 +1,20 @@
+[package]
+name = "example_plugin"
+version = "0.1.0"
+authors = [""]
+edition = "2018"
+
+[lib]
+name = "rust_contracts_plugin"
+crate-type = ["staticlib", "cdylib"]
+test = false
+doctest = false
+
+[dependencies]
+rust_contracts_common = { path = "../common" }
+quote = "0.6"
+proc-macro2 = "0.4.30"
+
+[dependencies.syn]
+version = "0.15"
+features = [ "full", "parsing" ]
