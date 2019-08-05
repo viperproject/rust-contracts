@@ -27,3 +27,8 @@ script:
   # Test with the plugin
   - example_tool/target/debug/cargo-tool test --all-features
   - "example_tool/target/debug/cargo-tool run --example true | grep -q 'requires: true'"
+
+notifications:
+  email:
+    on_success: change
+    on_failure: always
