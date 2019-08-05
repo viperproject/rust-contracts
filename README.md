@@ -1,24 +1,32 @@
 Rust Contracts
 ==============
 
+[![Build Status](https://travis-ci.org/viperproject/rust-contracts.svg?branch=master)](https://travis-ci.org/viperproject/rust-contracts)
+
 This crate offers a way declare the *contract* (e.g. functional specification) of Rust functions.
 
-:warning: WORK IN PROGRESS :warning:
 
 Test
 ----
 
-To test this crate without plugins:
 ```bash
-cargo build --all --examples
-cargo test --all --examples
-```
+# By default, contracts are just ignored
+cargo test --all-features
+cargo run --example true | (! grep -q 'requires: true')
 
-To test this crate using the plugin `example_plugin`:
-```bash
-cargo build --all --examples
+# Clean up
+cargo clean
+cargo clean --manifest-path example_plugin/Cargo.toml
+cargo clean --manifest-path example_tool/Cargo.toml
+
+# Build a tool that checks the contracts (in this example, it will only print the contract)
 cargo build --manifest-path example_plugin/Cargo.toml
-LD_LIBRARY_PATH=example_plugin/target/debug/ RUST_CONTRACTS_PLUGIN=example_plugin/target/debug/ cargo test --all --examples -- --nocapture
+cargo build --manifest-path example_tool/Cargo.toml
+
+# Run the example with the modified contracts behaviour
+export RUST_CONTRACTS_LIB=example_plugin/target/debug/libexample_plugin.so
+example_tool/target/debug/cargo-tool test --examples
+example_tool/target/debug/cargo-tool run --example true | grep -q 'requires: true'
 ```
 
 

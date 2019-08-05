@@ -1,8 +1,0 @@
-[package]
-name = "rust_contracts_common"
-version = "0.1.0"
-authors = [""]
-edition = "2018"
-
-[dependencies]
-proc-macro2 = "0.4.30"

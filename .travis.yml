@@ -1,0 +1,29 @@
+language: rust
+
+rust:
+  - stable
+  - beta
+  - nightly
+
+matrix:
+  allow_failures:
+    - rust: nightly
+  fast_finish: true
+
+env:
+  - RUST_CONTRACTS_LIB=example_plugin/target/debug/libexample_plugin.so
+
+script:
+  # Test with no plugin
+  - cargo test --all-features
+  - "cargo run --example true | (! grep -q 'requires: true')"
+  # Clean
+  - cargo clean
+  - cargo clean --manifest-path example_plugin/Cargo.toml
+  - cargo clean --manifest-path example_tool/Cargo.toml
+  # Build
+  - cargo build --manifest-path example_plugin/Cargo.toml
+  - cargo build --manifest-path example_tool/Cargo.toml
+  # Test with the plugin
+  - example_tool/target/debug/cargo-tool test --all-features
+  - "example_tool/target/debug/cargo-tool run --example true | grep -q 'requires: true'"

@@ -5,13 +5,11 @@ authors = [""]
 edition = "2018"
 
 [lib]
-name = "rust_contracts_plugin"
-crate-type = ["staticlib", "cdylib"]
+proc_macro = true
 test = false
 doctest = false
 
 [dependencies]
-rust_contracts_common = { path = "../common" }
 quote = "0.6"
 proc-macro2 = "0.4.30"
 

@@ -1,0 +1,17 @@
+[package]
+name = "example_tool"
+version = "0.1.0"
+authors = [""]
+edition = "2018"
+
+[[bin]]
+name = "rustc-tool"
+path = "src/rustc.rs"
+test = false
+doctest = false
+
+[[bin]]
+name = "cargo-tool"
+path = "src/cargo.rs"
+test = false
+doctest = false
