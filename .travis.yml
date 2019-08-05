@@ -11,7 +11,7 @@ matrix:
   fast_finish: true
 
 env:
-  - RUST_CONTRACTS_LIB=example_plugin/target/debug/libexample_plugin.so
+  - RUST_CONTRACTS_LIB=example_contracts_impl/target/debug/libexample_contracts_impl.so
 
 script:
   # Test with no plugin
@@ -19,14 +19,14 @@ script:
   - "cargo run --example true | (! grep -q 'requires: true')"
   # Clean
   - cargo clean
-  - cargo clean --manifest-path example_plugin/Cargo.toml
-  - cargo clean --manifest-path example_tool/Cargo.toml
+  - cargo clean --manifest-path example_contracts_impl/Cargo.toml
+  - cargo clean --manifest-path example_verification_tool/Cargo.toml
   # Build
-  - cargo build --manifest-path example_plugin/Cargo.toml
-  - cargo build --manifest-path example_tool/Cargo.toml
+  - cargo build --manifest-path example_contracts_impl/Cargo.toml
+  - cargo build --manifest-path example_verification_tool/Cargo.toml
   # Test with the plugin
-  - example_tool/target/debug/cargo-tool test --all-features
-  - "example_tool/target/debug/cargo-tool run --example true | grep -q 'requires: true'"
+  - example_verification_tool/target/debug/cargo-tool test --all-features
+  - "example_verification_tool/target/debug/cargo-tool run --example true | grep -q 'requires: true'"
 
 notifications:
   email:
