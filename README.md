@@ -23,7 +23,7 @@ cargo clean --manifest-path example_tool/Cargo.toml
 cargo build --manifest-path example_plugin/Cargo.toml
 cargo build --manifest-path example_tool/Cargo.toml
 
-# Run the example with the modified contracts behaviour
+# Compile and run the example with the modified contracts behaviour
 export RUST_CONTRACTS_LIB=example_plugin/target/debug/libexample_plugin.so
 example_tool/target/debug/cargo-tool test --examples
 example_tool/target/debug/cargo-tool run --example true | grep -q 'requires: true'
