@@ -18,15 +18,15 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
         .expect("The RUST_CONTRACTS_LIB environment variable is missing");
 
     // Swap `rust_contracts` with the library specified in `RUST_CONTRACTS_LIB`
-    let mut preceeded_by_extern = false;
+    let mut preceded_by_extern = false;
     for arg in args.iter_mut() {
-        if preceeded_by_extern && arg.starts_with("rust_contracts=") {
+        if preceded_by_extern && arg.starts_with("rust_contracts=") {
             *arg = format!("rust_contracts={}", rust_contracts_lib);
         } else if arg == "--extern" {
-            preceeded_by_extern = true;
+            preceded_by_extern = true;
             continue
         }
-        preceeded_by_extern = true;
+        preceded_by_extern = true;
     }
 
     let exit_status = Command::new("rustc".to_string())
