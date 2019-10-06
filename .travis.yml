@@ -19,7 +19,7 @@ script:
   - cargo build --manifest-path example_verification_tool/Cargo.toml
   # Test with the plugin
   - example_verification_tool/target/debug/cargo-tool test --all-features
-  - "example_verification_tool/target/debug/cargo-tool run --example true | grep -q 'requires: true'"
+  - "example_verification_tool/target/debug/cargo-tool run --example true | grep -q 'requires: A(E(true))'"
 
 notifications:
   email:
