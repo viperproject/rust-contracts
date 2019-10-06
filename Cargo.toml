@@ -1,5 +1,5 @@
 [package]
-name = "rust_contracts"
+name = "rust-contracts"
 version = "0.1.0"
 authors = [""]
 edition = "2018"
