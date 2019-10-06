@@ -12,6 +12,7 @@ doctest = false
 [dependencies]
 quote = "0.6"
 proc-macro2 = "0.4.30"
+rust-contracts-parser = { path = "../parser" }
 
 [dependencies.syn]
 version = "0.15"
