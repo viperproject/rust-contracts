@@ -84,6 +84,18 @@ mod tests {
     }
 
     #[test]
+    fn conjunctions_and_expression_err2() {
+        let p = parse("a &&");
+        assert!(p.is_err());
+    }
+
+    #[test]
+    fn conjunctions_and_expression_err3() {
+        let p = parse("&& b");
+        assert!(p.is_err());
+    }
+
+    #[test]
     fn implications1() {
         let p = parse("a && b ==> c && d && e").unwrap();
         assert_eq!(
@@ -128,6 +140,18 @@ mod tests {
     #[test]
     fn implications_err2() {
         let p = parse("a && (b ==>) c && d && e");
+        assert!(p.is_err());
+    }
+
+    #[test]
+    fn implications_err3() {
+        let p = parse("a ==> ");
+        assert!(p.is_err());
+    }
+
+    #[test]
+    fn implications_err4() {
+        let p = parse("==> b");
         assert!(p.is_err());
     }
 }

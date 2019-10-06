@@ -1,6 +1,6 @@
 //! Groups tokens into token AST.
 
-use proc_macro2::{Delimiter, Group, Spacing, TokenStream, TokenTree};
+use proc_macro2::{Delimiter, Group, Spacing, Span, TokenStream, TokenTree};
 use std::collections::VecDeque;
 use std::mem;
 use syn;
@@ -38,6 +38,7 @@ pub fn preparse_assertion(tokens: TokenStream) -> syn::Result<ast::Assertion> {
 }
 
 struct ParserStream {
+    last_span: Span,
     tokens: VecDeque<TokenTree>,
 }
 
@@ -45,25 +46,35 @@ impl ParserStream {
     fn empty() -> Self {
         Self {
             tokens: VecDeque::new(),
+            last_span: Span::call_site(),
         }
     }
     fn from_token_stream(tokens: TokenStream) -> Self {
         let token_queue: VecDeque<_> = tokens.into_iter().collect();
         Self {
             tokens: token_queue,
+            last_span: Span::call_site(),
         }
+    }
+    fn last_span(&self) -> Span {
+        self.last_span
     }
     fn is_empty(&self) -> bool {
         self.tokens.is_empty()
     }
     fn pop(&mut self) -> Option<TokenTree> {
-        self.tokens.pop_front()
+        if let Some(token) = self.tokens.pop_front() {
+            self.last_span = token.span();
+            Some(token)
+        } else {
+            None
+        }
     }
     /// Check if the input starts with the keyword and if yes consume it.
     fn check_keyword(&mut self, keyword: &str) -> bool {
         if let Some(TokenTree::Ident(ident)) = self.tokens.front() {
             if ident.to_string() == keyword {
-                self.tokens.pop_front();
+                self.pop();
                 return true;
             }
         }
@@ -95,7 +106,7 @@ impl ParserStream {
             return false;
         }
         for _ in operator.chars() {
-            self.tokens.pop_front();
+            self.pop();
         }
         true
     }
@@ -103,7 +114,7 @@ impl ParserStream {
     fn check_nested_assertion(&mut self) -> Option<Group> {
         if let Some(TokenTree::Group(group)) = self.tokens.front() {
             if group.delimiter() == Delimiter::Parenthesis {
-                if let Some(TokenTree::Group(group)) = self.tokens.pop_front() {
+                if let Some(TokenTree::Group(group)) = self.pop() {
                     return Some(group);
                 } else {
                     unreachable!();
@@ -138,14 +149,19 @@ impl Parser {
         let expr = mem::replace(&mut self.expr, Vec::new());
         ast::Expression::new(expr)
     }
-    fn convert_expr_into_conjunct(&mut self) {
+    fn convert_expr_into_conjunct(&mut self) -> syn::Result<()> {
         if !self.expr.is_empty() {
             let expression = self.new_expr();
             self.conjuncts
                 .push(common::Assertion::Expression(expression));
+            Ok(())
         } else {
-            assert!(self.consumed_expression);
-            self.consumed_expression = false;
+            if !self.consumed_expression {
+                Err(self.missing_assertion_error())
+            } else {
+                self.consumed_expression = false;
+                Ok(())
+            }
         }
     }
     /// Traverse the tokens and reconstruct the high-level structure of the assertion.
@@ -171,14 +187,14 @@ impl Parser {
             } else if self.input.check_keyword("after_expiry") {
                 unimplemented!("after_expiry_keyword");
             } else if self.input.check_operator("==>") {
-                self.convert_expr_into_conjunct();
+                self.convert_expr_into_conjunct()?;
                 let mut parser = Parser {
                     input: mem::replace(&mut self.input, ParserStream::empty()),
                     conjuncts: Vec::new(),
                     expr: Vec::new(),
                     consumed_expression: false,
                 };
-                let lhs = self.conjuncts_to_assertion();
+                let lhs = self.conjuncts_to_assertion()?;
                 let rhs = parser.extract_assertion()?;
                 assert!(parser.is_finished());
                 let implication = common::Implication {
@@ -187,7 +203,10 @@ impl Parser {
                 };
                 return Ok(common::Assertion::Implication(implication));
             } else if self.input.check_operator("&&") {
-                self.convert_expr_into_conjunct();
+                self.convert_expr_into_conjunct()?;
+                if self.input.is_empty() {
+                    return Err(self.missing_assertion_error());
+                }
             } else if let Some(group) = self.input.check_nested_assertion() {
                 if self.expr.is_empty() && (self.input.is_empty() || self.input.peek_any_operator())
                 {
@@ -214,18 +233,26 @@ impl Parser {
             self.conjuncts
                 .push(common::Assertion::Expression(expression));
         }
-        Ok(self.conjuncts_to_assertion())
+        self.conjuncts_to_assertion()
     }
 
-    fn conjuncts_to_assertion(&mut self) -> ast::Assertion {
-        assert!(!self.conjuncts.is_empty());
-        if self.conjuncts.len() == 1 {
-            self.conjuncts.pop().unwrap()
+    fn conjuncts_to_assertion(&mut self) -> syn::Result<ast::Assertion> {
+        if self.conjuncts.is_empty() {
+            Err(self.missing_assertion_error())
         } else {
-            let conjunction = ast::Conjunction {
-                conjuncts: mem::replace(&mut self.conjuncts, Vec::new()),
+            let assertion = if self.conjuncts.len() == 1 {
+                self.conjuncts.pop().unwrap()
+            } else {
+                let conjunction = ast::Conjunction {
+                    conjuncts: mem::replace(&mut self.conjuncts, Vec::new()),
+                };
+                common::Assertion::Conjunction(conjunction)
             };
-            common::Assertion::Conjunction(conjunction)
+            Ok(assertion)
         }
+    }
+
+    fn missing_assertion_error(&self) -> syn::Error {
+        syn::Error::new(self.input.last_span(), "missing assertion")
     }
 }
