@@ -26,7 +26,6 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
             preceded_by_extern = true;
             continue
         }
-        preceded_by_extern = true;
     }
 
     let exit_status = Command::new("rustc".to_string())
