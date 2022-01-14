@@ -1,5 +1,8 @@
-Rust Contracts
-==============
+Rust Contracts (Deprecated)
+===========================
+
+**This project is not actively maintained. If you want something that is maintained, please see Prusti and its contracts library: https://github.com/viperproject/prusti-dev**
+
 
 [![Build Status](https://travis-ci.org/viperproject/rust-contracts.svg?branch=master)](https://travis-ci.org/viperproject/rust-contracts)
 
